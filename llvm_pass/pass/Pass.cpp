@@ -7,7 +7,6 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 
-#include "graph/instruction_graph.hpp"
 
 using namespace llvm;
 
@@ -29,23 +28,20 @@ namespace {
                 return false;
             }
 
-            // std::error_code EC;
-            // raw_fd_ostream file_stream("insrtuction_graph.dot", EC, sys::fs::OpenFlags::OF_Append);
+            std::error_code EC;
+            raw_fd_ostream file_stream("vizualization/static.txt", EC, sys::fs::OpenFlags::OF_Append);
 
-            // file_stream << "In a function called " << F.getName() << "!\n";
-            // file_stream << "Function body:\n";
-            // F.print(file_stream);
+            file_stream << "function " << F.getName() << "\n";
 
-            // for (auto &B : F) {
-            //     file_stream << "Basic block:\n";
-            //     B.print(file_stream);
+            for (auto &B : F) {
+                file_stream << "bb " << &B << "\n";
+                // B.print(file_stream);
 
-            //     for (auto &I : B) {
-            //         file_stream << "Instruction: \n";
-            //         I.print(file_stream, true);
-            //         file_stream << "\n";
-            //     }   
-            // }
+                for (auto &I : B) {
+                    I.print(file_stream, true);
+                    file_stream << "\n";
+                }   
+            }
 
             LLVMContext &Ctx = F.getContext();
             IRBuilder<> builder(Ctx);
@@ -55,6 +51,7 @@ namespace {
             ArrayRef<Type *> funcStartParamTypes = 
                 // {
                     builder.getInt8Ty()->getPointerTo();
+                    builder.getInt64Ty()->getPointerTo();
                 // };
             FunctionType *funcStartLogFuncType = 
                 // {
@@ -68,8 +65,9 @@ namespace {
             // Prepare funcEndLogger function
             ArrayRef<Type *> funcEndParamTypes = 
                 {
-                    builder.getInt8Ty()->getPointerTo()
-                    // Type::getInt32Ty(Ctx)
+                    builder.getInt8Ty()->getPointerTo(),    // func name
+                    builder.getInt64Ty()->getPointerTo(),   // bb address
+                    Type::getInt32Ty(Ctx)                   // return value
                 };
             FunctionType *funcEndLogFuncType = 
                 // {
@@ -79,13 +77,20 @@ namespace {
                 F.getParent()->getOrInsertFunction("funcEndLogger", funcEndLogFuncType);
 
             // Prepare to get return value
+
             for (auto &B : F)
             {
-                outs() << "for (auto &B : F)\n";
+                if (F.getReturnType()->isIntegerTy())
+                    outs() << "IT'S INTEGER TYPE\n";
+                else
+                    outs() << "IT ISN'T INTEGER TYPE\n";
+
                 // Insert a call to funcStartLogger function in the function begin
                 builder.SetInsertPoint(&B.front());
                 Value *funcName = builder.CreateGlobalStringPtr(F.getName());
-                Value *args[] = {funcName};
+                // Value *bbAddress = static_cast<Value *>(&B);
+                Value *bbAddress = ConstantInt::get(builder.getInt64Ty(), (int64_t)(&B));
+                Value *args[] = {funcName, bbAddress};
                 builder.CreateCall(funcStartLogFunc, args);
                 for (auto &I : B)
                 {
@@ -96,9 +101,10 @@ namespace {
 
                         // Insert a call to funcEndLogFunc function
                         Value *funcName = builder.CreateGlobalStringPtr(F.getName());
-                        // Value *returnValue = retInstr->getReturnValue();
-                        // Value *args[] = {funcName, retInstr};
-                        Value *args[] = {funcName};
+                        Value *bbAddress = ConstantInt::get(builder.getInt64Ty(), (int64_t)(&B));
+                        Value *returnValue = retInstr->getReturnValue();
+
+                        Value *args[] = {funcName, bbAddress, returnValue};
                         builder.CreateCall(funcEndLogFunc, args);
                     }
                 }

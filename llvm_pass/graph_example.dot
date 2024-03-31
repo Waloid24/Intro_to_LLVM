@@ -1,0 +1,103 @@
+digraph {
+    compound=true;
+
+    node [shape=plaintext, fontsize=12];
+    
+    // Узел с текстом
+
+    subgraph cluster_0 {
+        
+        rankdir=TB; // vertical nodes
+
+		style=filled;
+		color=lightgrey;
+		node [style=filled,color=white];
+
+        label = "func: factorial";
+
+		node0 [label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">
+                <TR><TD BORDER="1" SIDES="TB">bb: 0xe1e220</TD></TR>
+                <TR><TD>%2 = alloca i32, align 4</TD></TR>
+                <TR><TD>%3 = alloca i32, align 4</TD></TR>
+                <TR><TD>store i32 %0, i32* %2, align 4</TD></TR>
+                <TR><TD>store i32 1, i32* %3, align 4</TD></TR>
+                <TR><TD>br label %4</TD></TR>
+            </TABLE>
+        >]; 
+
+        node1 [label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">
+                <TR><TD>%5 = load i32, i32* %2, align 4</TD></TR>
+                <TR><TD>%6 = icmp sgt i32 %5, 1</TD></TR>
+                <TR><TD>br i1 %6, label %7, label %14</TD></TR>
+            </TABLE>
+        >];
+
+        node0 -> node1;
+	}
+
+    subgraph cluster_1 {
+        
+        rankdir=TB; // vertical nodes
+
+		style=filled;
+		color=lightgrey;
+		node [style=filled,color=white];
+
+        label = "func: main";
+
+		node2 [label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">
+                <TR><TD BORDER="1" SIDES="TB">bb: 0xe1f870</TD></TR>
+                <TR><TD>%1 = alloca i32, align 4</TD></TR>
+                <TR><TD>store i32 0, i32* %1, align 4</TD></TR>
+                <TR><TD>%2 = call i32 @factorial(i32 5)</TD></TR>
+                <TR><TD>%3 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([20 x i8], [20 x i8]* @.str, i64 0, i64 0), i32 5, i32 %2)</TD></TR>
+                <TR><TD BGCOLOR="lightblue">ret 0</TD></TR>
+            </TABLE>
+        >];
+	}
+
+    subgraph cluster_2 {
+		style=filled;
+		color=lightgrey;
+
+        rankdir=TB; // vertical nodes
+        {rank=same;}
+
+		node [style=filled,color=white];
+
+        label = "func: lizard";
+
+		node3 [label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">
+                <TR><TD BORDER="1" SIDES="TB">bb: 0xe1e220</TD></TR>
+                <TR><TD>%2 = alloca i32, align 4</TD></TR>
+                <TR><TD>%3 = alloca i32, align 4</TD></TR>
+                <TR><TD>store i32 %0, i32* %2, align 4</TD></TR>
+                <TR><TD>store i32 1, i32* %3, align 4</TD></TR>
+                <TR><TD>br label %4</TD></TR>
+            </TABLE>
+        >]; 
+
+        node4 [label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0">
+                <TR><TD>%5 = load i32, i32* %2, align 4</TD></TR>
+                <TR><TD>%6 = icmp sgt i32 %5, 1</TD></TR>
+                <TR><TD>br i1 %6, label %7, label %14</TD></TR>
+                <TR><TD BGCOLOR="lightblue"> ret 120</TD></TR>
+            </TABLE>
+        >];
+
+        node3 -> node4;
+	}
+
+    node2 -> node0 [ltail=cluster_1, lhead=cluster_0];
+
+    node2 -> node3 [ltail=cluster_1, lhead=cluster_2];
+    
+
+    
+
+}

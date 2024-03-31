@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-size_t factorial(size_t num)
+int factorial(int num)
 {
-    size_t sum = 1;
+    int sum = 1;
     for (; num > 1; --num)
     {
         sum *= num;
@@ -15,3 +15,4 @@ int main(void)
     printf("factorial %d = %zu\n", 5, factorial(5));
     return 0;
 }
+

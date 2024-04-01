@@ -16,9 +16,9 @@ namespace {
 
         MyPass() : FunctionPass(ID) {}
 
-        bool isLogger(const StringRef& funcName)
+        bool isLogger(const StringRef& func_name)
         {
-            return funcName == "funcStartLogger" || funcName == "funcEndLogger";
+            return func_name == "funcStartLogger" || func_name == "funcEndLogger";
         }
 
         bool runOnFunction(Function &F) override {
@@ -87,10 +87,10 @@ namespace {
 
                 // Insert a call to funcStartLogger function in the function begin
                 builder.SetInsertPoint(&B.front());
-                Value *funcName = builder.CreateGlobalStringPtr(F.getName());
+                Value *func_name = builder.CreateGlobalStringPtr(F.getName());
                 // Value *bbAddress = static_cast<Value *>(&B);
                 Value *bbAddress = ConstantInt::get(builder.getInt64Ty(), (int64_t)(&B));
-                Value *args[] = {funcName, bbAddress};
+                Value *args[] = {func_name, bbAddress};
                 builder.CreateCall(funcStartLogFunc, args);
                 for (auto &I : B)
                 {
@@ -100,11 +100,11 @@ namespace {
                         builder.SetInsertPoint(retInstr);
 
                         // Insert a call to funcEndLogFunc function
-                        Value *funcName = builder.CreateGlobalStringPtr(F.getName());
+                        Value *func_name = builder.CreateGlobalStringPtr(F.getName());
                         Value *bbAddress = ConstantInt::get(builder.getInt64Ty(), (int64_t)(&B));
                         Value *returnValue = retInstr->getReturnValue();
 
-                        Value *args[] = {funcName, bbAddress, returnValue};
+                        Value *args[] = {func_name, bbAddress, returnValue};
                         builder.CreateCall(funcEndLogFunc, args);
                     }
                 }

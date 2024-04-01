@@ -12,17 +12,14 @@ FILES := ${VIZUALIZATION_DIR}/static.txt ${VIZUALIZATION_DIR}/dynamic.txt
 # .PHONY: remove_files
 
 all:
-	@for file in $(FILES); do\
-        if [ -f $$file ]; then\
-            rm $$file;\
-        fi\
-    done
-	# @if [ -d visualization ]; then \
-    #     rm -rf visualization; \
-    # fi
-    # mkdir visualization
+	@for file in $(FILES); do if [ -f $$file ]; then rm $$file; fi done
 
 	clang++ ${PASS_DIR}/Pass.cpp -c -fPIC -I`llvm-config --includedir` -o Pass.o
 	clang++ Pass.o -fPIC -shared -o libPass.so
 	clang -Xclang -load -Xclang ./libPass.so ./tests/factorial.c ${PASS_DIR}/log.c
 	# clang -Xclang -load -Xclang ./libPass.so ./tests/factorial.c -emit-llvm -S -o llvm_ir.ll
+
+.PHONY: graph_builder
+build_graph:
+	clang++ ${VIZUALIZATION_DIR}/main.cpp -o ${VIZUALIZATION_DIR}/graph_builder
+

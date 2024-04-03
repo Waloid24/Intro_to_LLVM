@@ -7,7 +7,6 @@
 #include <vector>
 #include <iostream> 
 #include <algorithm>
-#include <list>
 
 namespace vizualizer {
 
@@ -33,23 +32,30 @@ class Base_block {
         void add_body_str(std::string &line)
         {
             body_.push_back(line);
+
         }
         void increase_counter()
         {
             num_requests_++;
         }
 
+        size_t LOG_bb_size()
+        {
+            return body_.size();
+        }
+
         void print_bb(std::ofstream &output)
         {
-            output << "node" << name_ << "[label=<\n";
-            output << "\t<TABLE BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\">\n";
-            output << "\t\t<TR><TD BORDER=\"1\" SIDES=\"TB\">bb: " << name_ << "</TD></TR>\n";
+            output << "\t\tnode" << name_ << "[label=<\n";
+            output << "\t\t<TABLE BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\">\n";
+            output << "\t\t\t<TR><TD BORDER=\"1\" SIDES=\"TB\">bb: " << name_ << "</TD></TR>\n";
+            std::cout << "$$$$ 'print_bb' size: " << body_.size() << std::endl;
             for (auto cur = body_.begin(), end = body_.end(); cur != end; ++cur)
             {
-                output << "\t\t<TR><TD>" << *cur << "</TD></TR>\n";
+                output << "\t\t\t<TR><TD>" << *cur << "</TD></TR>\n";
             }
-            output << "\t</TABLE>\n";
-            output << ">];\n";
+            output << "\t\t</TABLE>\n";
+            output << "\t\t>];\n";
         }
 };
 
@@ -61,7 +67,7 @@ class Function {
     std::vector<bb_iter> bb_ordering_;
     int ret_value_;
 
-    const char* function_header = "rankdir=TB;\n\t\tstyle=filled;\n\t\tcolor=lightgrey;\n\t\tnode [style=filled,color=white];\n\t\t";
+    const char* function_header = "\t\trankdir=TB;\n\t\tstyle=filled;\n\t\tcolor=lightgrey;\n\t\tnode [style=filled,color=white];\n\t\t";
 
     public:
         Function(){};
@@ -69,7 +75,7 @@ class Function {
 
         void add_bb(Base_block& bb)
         {
-            body_[bb.get_name()].increase_counter();    
+            body_[bb.get_name()] = bb;
         }
 
         void add_to_used_bb(bb_iter bb_iter)
@@ -94,7 +100,7 @@ class Function {
 
         void print_func_header(std::ofstream &output, std::string name)
         {
-            output << "subgraph cluster_" << name << " {\n";
+            output << "\tsubgraph cluster_" << name << " {\n";
             output << function_header;
         }
 
@@ -113,7 +119,20 @@ class Function {
 
         void print_func_end(std::ofstream &output)
         {
-            output << "}" << std::endl;
+            output << "\t}" << std::endl;
+        }
+
+        void print_bb_links(std::ofstream &output)
+        {
+            for (auto cur = bb_ordering_.begin(), end = std::prev(bb_ordering_.end()); cur != end; ++cur)
+            {
+                output << "node" << (*cur)->first << " -> " << "node" << (*std::next(cur))->first << std::endl;
+            }
+        }
+
+        std::string get_first_bb_name()
+        {
+            return (*bb_ordering_.begin())->first;
         }
 };
 
@@ -128,7 +147,7 @@ class Driver {
 
     std::vector<funcs_iter> funcs_ordering_;
 
-    const char* file_header = "digraph {\n\t compound = true;\n\tnode [shape=plaintext, fontsize=12];";
+    const char* file_header = "digraph {\n\tcompound = true;\n\tnode [shape=plaintext, fontsize=12];";
 
     public:
 
@@ -149,8 +168,8 @@ class Driver {
                 if (first_token == "function")
                 {
                     func_name = line.substr(9);
-                    // auto insert_res = funcs_.emplace(func_name);
-                    // funcs_ordering_.push_back(insert_res.first);
+                    auto insert_res = funcs_.emplace(func_name, Function{});
+                    funcs_ordering_.push_back(insert_res.first);
                 }
                 else if (first_token == "bb")
                 {
@@ -172,10 +191,14 @@ class Driver {
             {
                 int ret_value = 0;
                 size_t offset = 0;
+                
+                bool is_ret = false;
+
                 auto first_token = get_first_token(line.begin(), line.end());
 
                 if (first_token == "ret")
                 {
+                    is_ret = true;
                     first_token = get_first_token(line.begin()+sizeof("ret"), line.end());
                     size_t ret_value_len = first_token.length();
                     ret_value = std::stoi(first_token);
@@ -193,7 +216,7 @@ class Driver {
                 auto bb_name = get_first_token(line.begin()+offset, line.end());
                 auto bb_iter = funcs_iter->second.find_bb(bb_name);
 
-                if (bb_iter != funcs_iter->second.end_body())
+                if (bb_iter != funcs_iter->second.end_body() && !is_ret)
                 {
                     bb_iter->second.increase_counter();
                     funcs_iter->second.add_to_used_bb(funcs_iter->second.find_bb(bb_name)); // вставили в список базовых блоков
@@ -213,6 +236,8 @@ class Driver {
                 cur->second.print_func_end(vizualization_file_);
             }
 
+            create_links(vizualization_file_);
+
             vizualization_file_ << "}" << std::endl;
         }
 
@@ -224,33 +249,52 @@ class Driver {
     
     private:
 
+        void create_link_functions(std::ofstream &output)
+        {
+            for (auto cur = funcs_ordering_.begin(), end = std::prev(funcs_ordering_.end()); cur != end; ++cur)
+            {
+                output << "node" << (*cur)->second.get_first_bb_name() << " -> " << "node" << (*std::next(cur))->second.get_first_bb_name() << std::endl;
+            }
+        }
+
+        void create_links(std::ofstream &output)
+        {
+            for (auto cur = funcs_.begin(), end = funcs_.end(); cur != end; ++cur)
+            {
+                cur->second.print_bb_links(output);
+            }
+            create_link_functions(output);
+        }
+
         Base_block process_bb(std::string &line)
         {
             std::string bb_name = line.substr(3);
             Base_block bb(bb_name);
-            // std::string line;
 
             while (std::getline(static_file_, line))
             {
+                line = line.substr(line.find_first_not_of(" \t"));
                 auto first_token = get_first_token(line.begin(), line.end());
                 if (first_token != "bb" && first_token != "function")
                 {
-                    bb.add_body_str(line);
+                    // if (first_token != "ret")
+                        bb.add_body_str(line);
                 }
                 else
                 {
                     std::streampos pos = static_file_.tellg();
                     if (pos != -1) 
                     {
-                        static_file_.seekg((size_t)pos - line.length() - sizeof("\n"));
+                        static_file_.seekg((size_t)pos - line.length() - sizeof('\n'));
                     } else {
                         std::cerr << "Не удалось определить смещение в файле!" << std::endl;
                     }
-                    return bb;
+                    break;
                 }
             }
-            
 
+            std::cout << "result bb size = " << bb.LOG_bb_size() << std::endl;
+            return bb;
         }
 
         std::string get_first_token(std::string::iterator start, std::string::iterator end)
@@ -258,15 +302,6 @@ class Driver {
             auto spacePos = std::find(start, end, ' ');
             return std::string(start, spacePos);
         }
-
-        std::string get_function_name()
-        {
-            std::string line;
-            auto function_pos = line.find("function");
-            std::string func_name;
-
-        }
-
 
 };
 

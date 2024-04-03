@@ -19,7 +19,6 @@ all:
 	clang -Xclang -load -Xclang ./libPass.so ./tests/factorial.c ${PASS_DIR}/log.c
 	# clang -Xclang -load -Xclang ./libPass.so ./tests/factorial.c -emit-llvm -S -o llvm_ir.ll
 
-.PHONY: graph_builder
-build_graph:
-	clang++ ${VIZUALIZATION_DIR}/main.cpp -o ${VIZUALIZATION_DIR}/graph_builder
+vizualizer:
+	clang++ ${VIZUALIZATION_DIR}/main.cpp -o vizualizer
 

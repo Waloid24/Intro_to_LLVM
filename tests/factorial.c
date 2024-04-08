@@ -12,7 +12,9 @@ int factorial(int num)
 
 int main(void)
 {
-    printf("factorial %d = %zu\n", 5, factorial(5));
+    printf("factorial %d = %d\n", 5, factorial(5));
+
+    // printf("factorial %d = %d\n", 2, factorial(2));
     return 0;
 }
 

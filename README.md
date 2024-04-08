@@ -11,17 +11,19 @@ LLVM IR is the middle-end stage of compilation:
 
 ### My LLVM Pass
 In this work, I implemented my own LLVM Pass, which performs **static** and **dynamic** program analysis.
+
 **Static analysis** collects:
 - basic block IDs;
 - basic block instructions;
 - function name.
+
 **Dynamic analysis** collects:
 - functions execution order;
 - basic blocks execution order;
 - function return value;
 - arguments passed in the call function.
 
-The **static** analysis file ('static.txt') has a similar structure:
+The **static** analysis file (`static.txt`) has a similar structure:
 ```
 function <name_func>
 bb <bb_ID>
@@ -32,7 +34,7 @@ bb <bb_ID>
 ....
 ```
 
-The **dynamic** analysis file ('dynamic.txt') has a similar structure:
+The **dynamic** analysis file (`dynamic.txt`) has a similar structure:
 - if the base block in the function is being read
 ```
 <func_name> <bb_ID>
@@ -92,4 +94,4 @@ An example of the `factorial.c` program instrumentation:
 ![factorial](images/factorial.png)
 
 # Research LLVM IR instructions
-You can view the results and a detailed description by going to the folder 'llvm_instruction'
+You can view the results and a detailed description by going to the folder `llvm_instruction`

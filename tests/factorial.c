@@ -14,7 +14,7 @@ int main(void)
 {
     printf("factorial %d = %d\n", 5, factorial(5));
 
-    // printf("factorial %d = %d\n", 2, factorial(2));
+    printf("factorial %d = %d\n", 2, factorial(2));
     return 0;
 }
 

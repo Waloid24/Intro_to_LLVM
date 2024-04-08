@@ -2,9 +2,9 @@ VIZUALIZATION_DIR := vizualization
 PASS_DIR := pass
 PASS_SERVICE_FILES := ${VIZUALIZATION_DIR}/static.txt ${VIZUALIZATION_DIR}/dynamic.txt
 BUILD_DIR := build
-EXEC_FILES := programm vizualizer
+EXEC_FILES := programm 
 
-.PHONY: remove_pass_files remove_viz_files remove_build vizualizer clean remove_exec_files
+.PHONY: remove_pass_files remove_viz_files remove_build clean remove_exec_files
 
 all: remove_pass_files
 
@@ -18,11 +18,6 @@ all: remove_pass_files
 	@clang++ ${BUILD_DIR}/Pass.o -fPIC -shared -o ${BUILD_DIR}/libPass.so
 	@echo "Building your programm..."
 	@clang -Xclang -load -Xclang ./${BUILD_DIR}/libPass.so ./tests/factorial.c ${PASS_DIR}/log.c -o programm
-	@echo "Done!"
-
-vizualizer:
-	@echo "Creating vizualizer..."
-	@clang++ ${VIZUALIZATION_DIR}/main.cpp -o vizualizer
 	@echo "Done!"
 
 clean: remove_viz_files remove_pass_files remove_build remove_exec_files

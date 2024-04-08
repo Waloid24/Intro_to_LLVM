@@ -25,7 +25,6 @@ class Line final {
 
     public:
 
-        // Line(){}
         Line(std::string line, size_t num = 0) : body_{line}, num_{num}{
             rep_counter++;
         };
@@ -319,10 +318,11 @@ class Module final {
                             ++index;
                         }
                     }
-                    else if (bb->call_size() != 0)
+                    if (bb->call_size() != 0)
                     {
                         auto call_line = bb->call_lines_begin();
                         auto end_line = bb->call_lines_end();
+                    
                         for (; call_line != end_line; ++call_line)
                         {
                             output << "\tnode" << bb->get_name() << ":" << (*call_line)->get_line_num() << " -> " << "node" 
@@ -352,7 +352,7 @@ class Driver final {
         {
             std::string line;
             std::string name;
-            size_t num_line;
+            size_t num_line = 0;
             
             while (std::getline(static_file_, line))
             {
@@ -455,8 +455,8 @@ class Driver final {
                         bb_begin->add_arg(arg);
                         bb->second->add_call_line(bb_begin);
 
-                        call_ordering.emplace(cur_bb_name, str_num_line);
                         prev_func_name = first_token;
+                        call_ordering.emplace(cur_bb_name, str_num_line);
                     }
                     
                 }
